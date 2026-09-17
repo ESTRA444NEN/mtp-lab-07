@@ -40,11 +40,14 @@ def main():
     dsn = os.environ.get("LAB7_PG_DSN")
     if not dsn:
         raise SystemExit("Задайте LAB7_PG_DSN для подключения к PostgreSQL")
-    with psycopg2.connect(dsn) as connection:
+    connection = psycopg2.connect(dsn)
+    try:
         create_table(connection)
         note_id = add_note(connection, "Демонстрационная запись")
         print("Записи:", list_notes(connection))
         print("Удалена:", delete_note(connection, note_id))
+    finally:
+        connection.close()
 
 
 if __name__ == "__main__":

@@ -37,12 +37,15 @@ class Lab7Tests(unittest.TestCase):
     def test_postgres_live(self):
         import psycopg2
 
-        with psycopg2.connect(os.environ["LAB7_PG_DSN"]) as connection:
+        connection = psycopg2.connect(os.environ["LAB7_PG_DSN"])
+        try:
             create_table(connection)
             note_id = add_note(connection, "Проверка PostgreSQL")
             self.assertIn((note_id, "Проверка PostgreSQL"), list_notes(connection))
             self.assertTrue(delete_note(connection, note_id))
             self.assertNotIn((note_id, "Проверка PostgreSQL"), list_notes(connection))
+        finally:
+            connection.close()
 
 
 if __name__ == "__main__":
