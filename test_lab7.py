@@ -1,7 +1,8 @@
+import os
 import unittest
 from unittest.mock import MagicMock
 
-from postgres_library import add_note, delete_note
+from postgres_library import add_note, create_table, delete_note, list_notes
 from sqlite_library import Library
 
 
@@ -31,6 +32,17 @@ class Lab7Tests(unittest.TestCase):
         self.assertEqual(params, ("текст'; DROP TABLE x; --",))
         cursor.rowcount = 1
         self.assertTrue(delete_note(connection, 12))
+
+    @unittest.skipUnless(os.environ.get("LAB7_PG_DSN"), "PostgreSQL DSN не задан")
+    def test_postgres_live(self):
+        import psycopg2
+
+        with psycopg2.connect(os.environ["LAB7_PG_DSN"]) as connection:
+            create_table(connection)
+            note_id = add_note(connection, "Проверка PostgreSQL")
+            self.assertIn((note_id, "Проверка PostgreSQL"), list_notes(connection))
+            self.assertTrue(delete_note(connection, note_id))
+            self.assertNotIn((note_id, "Проверка PostgreSQL"), list_notes(connection))
 
 
 if __name__ == "__main__":
